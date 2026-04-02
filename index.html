@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SpeedDrop · GitHub File Transfer</title>
+  <title>SpeedDrop · Working File Transfer</title>
   <style>
     * {
       margin: 0;
@@ -25,12 +25,6 @@
       border-radius: 24px;
       box-shadow: 0 20px 60px rgba(0,0,0,0.3);
       overflow: hidden;
-      animation: slideUp 0.4s ease;
-    }
-
-    @keyframes slideUp {
-      from { opacity: 0; transform: translateY(30px); }
-      to { opacity: 1; transform: translateY(0); }
     }
 
     .header {
@@ -53,18 +47,6 @@
       display: inline-block;
     }
 
-    .github-badge {
-      background: #24292e;
-      color: white;
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 0.7rem;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      margin-top: 10px;
-    }
-
     .content {
       padding: 30px;
     }
@@ -82,7 +64,6 @@
     .upload-area:hover {
       border-color: #3b82f6;
       background: #eff6ff;
-      transform: scale(1.01);
     }
 
     .upload-area.drag-over {
@@ -212,6 +193,36 @@
       border: 1px solid #e2e8f0;
     }
 
+    .file-list {
+      margin-top: 20px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .file-item {
+      background: #f1f5f9;
+      padding: 12px;
+      border-radius: 12px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .file-item-info {
+      flex: 1;
+    }
+
+    .file-item-name {
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .file-item-size {
+      font-size: 0.7rem;
+      color: #64748b;
+    }
+
     .info-text {
       margin-top: 20px;
       padding-top: 20px;
@@ -227,13 +238,6 @@
       margin-top: 12px;
     }
 
-    .status {
-      margin-top: 12px;
-      font-size: 0.85rem;
-      text-align: center;
-      color: #666;
-    }
-
     footer {
       background: #f1f5f9;
       padding: 16px;
@@ -241,53 +245,28 @@
       font-size: 0.7rem;
       color: #64748b;
     }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
-    }
-
-    .uploading {
-      animation: pulse 1s infinite;
-    }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
       <h1>⚡ SpeedDrop</h1>
-      <div class="badge">GITHUB PAGES</div>
-      <div class="github-badge">
-        <span>🐙</span> Hosted on GitHub · Free Forever
-      </div>
-      <p style="margin-top: 12px; font-size: 0.9rem;">Simple file sharing · Works even if you close the tab!</p>
+      <div class="badge">WORKING VERSION</div>
+      <p style="margin-top: 12px; font-size: 0.9rem;">Files stored in your browser · No external services!</p>
     </div>
 
     <div class="content">
-      <!-- Sender UI -->
-      <div id="senderUI">
+      <!-- Main UI -->
+      <div id="mainUI">
         <div id="uploadArea" class="upload-area">
           <div style="font-size: 48px;">📁</div>
-          <div style="margin-top: 12px; font-weight: 600;">Click or drag file to upload</div>
-          <div style="font-size: 0.85rem; margin-top: 8px;">Files are temporarily stored online</div>
+          <div style="margin-top: 12px; font-weight: 600;">Click or drag file to store</div>
+          <div style="font-size: 0.85rem; margin-top: 8px;">Files saved locally in your browser</div>
           <div id="fileInfo" style="margin-top: 12px; display: none;"></div>
         </div>
         <input type="file" id="fileInput" style="display: none;">
 
-        <div>
-          <label style="font-size: 0.85rem; margin-top: 12px; display: block;">⏰ File expiry:</label>
-          <select id="expirySelect" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; margin-top: 8px;">
-            <option value="1">1 hour</option>
-            <option value="6">6 hours</option>
-            <option value="12">12 hours</option>
-            <option value="24" selected>24 hours</option>
-            <option value="48">48 hours</option>
-            <option value="72">3 days</option>
-            <option value="168">7 days</option>
-          </select>
-        </div>
-
-        <button id="uploadBtn" class="btn btn-primary" disabled>🚀 Upload & Create Link</button>
+        <button id="storeBtn" class="btn btn-primary" disabled>💾 Store File Locally</button>
 
         <div id="progressContainer" class="progress-container">
           <div class="progress-bar">
@@ -297,28 +276,37 @@
         </div>
 
         <div id="resultCard" class="result-card">
-          <div style="font-weight: 700; margin-bottom: 8px;">✅ File Uploaded Successfully!</div>
-          <div style="font-size: 0.85rem;">Share this link (works even if you close this tab):</div>
+          <div style="font-weight: 700; margin-bottom: 8px;">✅ File Stored Successfully!</div>
+          <div style="font-size: 0.85rem;">Share this link (works in this browser only):</div>
           <div id="shareLink" class="link-box"></div>
-          <div id="expiryInfo" style="font-size: 0.75rem; color: #f59e0b; margin-top: 8px;"></div>
           <div class="button-group">
             <button id="copyBtn" class="btn btn-success">📋 Copy Link</button>
-            <button id="newFileBtn" class="btn btn-secondary">📁 Upload Another</button>
+            <button id="newFileBtn" class="btn btn-secondary">📁 Store Another</button>
+          </div>
+        </div>
+
+        <!-- Stored Files List -->
+        <div id="storedFilesSection" style="margin-top: 24px;">
+          <div style="font-weight: 600; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+            <span>📦 Your Stored Files</span>
+            <button id="clearAllBtn" style="background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 0.75rem;">🗑️ Clear All</button>
+          </div>
+          <div id="fileList" class="file-list">
+            <div style="text-align: center; color: #64748b; padding: 20px;">No files stored yet</div>
           </div>
         </div>
       </div>
 
-      <!-- Receiver UI -->
-      <div id="receiverUI" style="display: none;">
+      <!-- Download UI -->
+      <div id="downloadUI" style="display: none;">
         <div class="download-section" style="display: block;">
           <div class="file-card">
             <div style="font-size: 48px;">📥</div>
             <div id="downloadFileName" style="font-weight: 600; margin: 12px 0; font-size: 1.1rem;"></div>
             <div id="downloadFileSize" style="color: #64748b; font-size: 0.9rem; margin: 8px 0;"></div>
-            <div id="downloadExpiry" style="font-size: 0.8rem; margin: 8px 0;"></div>
-            <div id="downloadStatus" style="font-size: 0.8rem; color: #3b82f6; margin: 8px 0;"></div>
+            <div id="downloadInfo" style="font-size: 0.8rem; margin: 8px 0; color: #10b981;"></div>
             <button id="downloadBtn" class="btn btn-primary">⬇️ Download File</button>
-            <button id="homeBtn" class="btn btn-secondary" style="margin-top: 10px;">🏠 Send Files</button>
+            <button id="backHomeBtn" class="btn btn-secondary" style="margin-top: 10px;">🏠 Back to Home</button>
           </div>
         </div>
       </div>
@@ -327,23 +315,131 @@
       <div id="successMessage" class="success-message"></div>
 
       <div class="info-text">
-        🚀 <strong>How it works:</strong> Files are temporarily stored using free online storage<br>
-        🔗 Share the link — anyone can download, even if you close this tab!<br>
-        ⏰ Files are automatically deleted after expiry time<br>
-        📦 Maximum file size: 100MB (free service limit)<br>
-        🔒 No registration required · Completely free
+        💾 <strong>How it works:</strong> Files are stored in your browser's IndexedDB<br>
+        🔗 Links work ONLY on <strong>this same browser</strong> on this computer<br>
+        📦 Files never expire unless manually deleted<br>
+        ⚡ Maximum file size: ~500MB (browser dependent)<br>
+        🔒 100% private · No external servers · Works offline
       </div>
     </div>
     <footer>
-      ⚡ Powered by GitHub Pages · Free file sharing · No data collection
+      🚀 Pure browser storage · Your files never leave your computer
     </footer>
   </div>
 
   <script>
-    // File storage using free temp.sh API (no server needed!)
+    // IndexedDB Setup
+    let db = null;
     let selectedFile = null;
-    let currentFileData = null;
-
+    
+    const DB_NAME = 'SpeedDropDB';
+    const DB_VERSION = 1;
+    const STORE_NAME = 'files';
+    
+    // Initialize IndexedDB
+    function initDB() {
+      return new Promise((resolve, reject) => {
+        if (db) {
+          resolve(db);
+          return;
+        }
+        
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+        
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => {
+          db = request.result;
+          resolve(db);
+        };
+        
+        request.onupgradeneeded = (event) => {
+          const db = event.target.result;
+          if (!db.objectStoreNames.contains(STORE_NAME)) {
+            db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+          }
+        };
+      });
+    }
+    
+    // Store file in IndexedDB
+    async function storeFile(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          try {
+            const db = await initDB();
+            const transaction = db.transaction([STORE_NAME], 'readwrite');
+            const store = transaction.objectStore(STORE_NAME);
+            
+            const fileId = 'file_' + Date.now() + '_' + Math.random().toString(36).substring(2);
+            const fileData = {
+              id: fileId,
+              name: file.name,
+              type: file.type,
+              size: file.size,
+              data: e.target.result,
+              createdAt: Date.now(),
+              downloads: 0
+            };
+            
+            const request = store.put(fileData);
+            request.onsuccess = () => resolve(fileId);
+            request.onerror = () => reject(request.error);
+          } catch (err) {
+            reject(err);
+          }
+        };
+        reader.onerror = () => reject(reader.error);
+        reader.readAsArrayBuffer(file);
+      });
+    }
+    
+    // Get file from IndexedDB
+    async function getFile(fileId) {
+      const db = await initDB();
+      return new Promise((resolve, reject) => {
+        const transaction = db.transaction([STORE_NAME], 'readonly');
+        const store = transaction.objectStore(STORE_NAME);
+        const request = store.get(fileId);
+        
+        request.onsuccess = () => {
+          if (request.result) {
+            resolve(request.result);
+          } else {
+            reject(new Error('File not found'));
+          }
+        };
+        request.onerror = () => reject(request.error);
+      });
+    }
+    
+    // Delete file from IndexedDB
+    async function deleteFile(fileId) {
+      const db = await initDB();
+      return new Promise((resolve, reject) => {
+        const transaction = db.transaction([STORE_NAME], 'readwrite');
+        const store = transaction.objectStore(STORE_NAME);
+        const request = store.delete(fileId);
+        
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+      });
+    }
+    
+    // Get all files
+    async function getAllFiles() {
+      const db = await initDB();
+      return new Promise((resolve, reject) => {
+        const transaction = db.transaction([STORE_NAME], 'readonly');
+        const store = transaction.objectStore(STORE_NAME);
+        const request = store.getAll();
+        
+        request.onsuccess = () => resolve(request.result || []);
+        request.onerror = () => reject(request.error);
+      });
+    }
+    
+    // Format bytes
     function formatBytes(bytes) {
       if (bytes === 0) return '0 Bytes';
       const k = 1024;
@@ -351,348 +447,272 @@
       const i = Math.floor(Math.log(bytes) / Math.log(k));
       return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     }
-
+    
+    // Show message
     function showMessage(type, message) {
       const element = document.getElementById(type === 'error' ? 'errorMessage' : 'successMessage');
       element.textContent = message;
       element.style.display = 'block';
       setTimeout(() => {
         element.style.display = 'none';
-      }, 5000);
+      }, 4000);
     }
-
+    
+    // Handle file selection
     function handleFile(file) {
       if (!file) return;
       
-      if (file.size > 100 * 1024 * 1024) {
-        showMessage('error', 'File too large! Maximum size is 100MB for free service.');
+      if (file.size > 500 * 1024 * 1024) {
+        showMessage('error', 'File too large! Maximum size is 500MB.');
         return;
       }
       
       selectedFile = file;
       const fileInfo = document.getElementById('fileInfo');
-      fileInfo.innerHTML = `<strong>📄 ${file.name}</strong><br>Size: ${formatBytes(file.size)}<br>Type: ${file.type || 'Unknown'}`;
+      fileInfo.innerHTML = `
+        <strong>📄 ${file.name}</strong><br>
+        Size: ${formatBytes(file.size)}<br>
+        Type: ${file.type || 'Unknown'}
+      `;
       fileInfo.style.display = 'block';
-      document.getElementById('uploadBtn').disabled = false;
+      document.getElementById('storeBtn').disabled = false;
     }
-
-    // Upload to multiple free services with fallback
-    async function uploadFileToService(file) {
-      const formData = new FormData();
-      formData.append('file', file);
-      
-      // Try multiple free upload services
-      const services = [
-        {
-          name: 'file.io',
-          url: 'https://file.io',
-          parse: (data) => data.link
-        },
-        {
-          name: 'tmp.ninja',
-          url: 'https://tmp.ninja/api.php?upload',
-          parse: (data) => data.files[0].url
-        }
-      ];
-      
-      for (const service of services) {
-        try {
-          const response = await fetch(service.url, {
-            method: 'POST',
-            body: formData
-          });
-          
-          if (response.ok) {
-            const data = await response.json();
-            const url = service.parse(data);
-            if (url) {
-              return { url, service: service.name };
-            }
-          }
-        } catch (err) {
-          console.log(`${service.name} failed, trying next...`);
-        }
-      }
-      
-      // Fallback: Use data URL for very small files
-      if (file.size < 1024 * 1024) { // 1MB
-        return new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            resolve({ url: e.target.result, service: 'data-url' });
-          };
-          reader.readAsDataURL(file);
-        });
-      }
-      
-      throw new Error('All upload services failed');
-    }
-
-    async function uploadFile() {
+    
+    // Store current file
+    async function storeCurrentFile() {
       if (!selectedFile) return;
-
-      const uploadBtn = document.getElementById('uploadBtn');
+      
+      const storeBtn = document.getElementById('storeBtn');
       const progressContainer = document.getElementById('progressContainer');
       const progressFill = document.getElementById('progressFill');
       const progressText = document.getElementById('progressText');
-      const expirySelect = document.getElementById('expirySelect');
-
-      uploadBtn.disabled = true;
-      uploadBtn.innerHTML = '🚀 Uploading...';
+      
+      storeBtn.disabled = true;
+      storeBtn.innerHTML = '💾 Storing file...';
       progressContainer.style.display = 'block';
-      uploadBtn.classList.add('uploading');
-
-      // Simulate progress for better UX
+      
       let progress = 0;
       const interval = setInterval(() => {
         if (progress < 90) {
           progress += 10;
           progressFill.style.width = progress + '%';
-          progressText.textContent = `Uploading ${progress}%...`;
+          progressText.textContent = `Storing ${progress}%...`;
         }
-      }, 200);
-
+      }, 100);
+      
       try {
-        const result = await uploadFileToService(selectedFile);
+        const fileId = await storeFile(selectedFile);
         
         clearInterval(interval);
         progressFill.style.width = '100%';
-        progressText.textContent = 'Upload complete!';
+        progressText.textContent = 'Stored successfully!';
         
         setTimeout(() => {
           progressContainer.style.display = 'none';
         }, 500);
         
-        // Calculate expiry
-        const expiresInHours = parseInt(expirySelect.value);
-        const expiresAt = Date.now() + (expiresInHours * 60 * 60 * 1000);
-        
-        // Store file metadata in localStorage
-        const fileId = Date.now().toString(36) + Math.random().toString(36).substring(2);
-        const fileData = {
-          id: fileId,
-          name: selectedFile.name,
-          size: selectedFile.size,
-          type: selectedFile.type,
-          url: result.url,
-          service: result.service,
-          createdAt: Date.now(),
-          expiresAt: expiresAt,
-          downloads: 0
-        };
-        
-        // Save to localStorage for persistence
-        let files = JSON.parse(localStorage.getItem('speeddrop_files') || '[]');
-        files.push(fileData);
-        localStorage.setItem('speeddrop_files', JSON.stringify(files));
-        
-        // Clean up expired files
-        cleanupExpiredFiles();
-        
-        currentFileData = fileData;
-        
-        // Create share link
         const shareUrl = `${window.location.origin}${window.location.pathname}?id=${fileId}`;
         document.getElementById('shareLink').textContent = shareUrl;
-        document.getElementById('expiryInfo').innerHTML = `⏰ Link expires in ${expiresInHours} hours • Using ${result.service}`;
         document.getElementById('resultCard').style.display = 'block';
         document.getElementById('uploadArea').style.display = 'none';
-        document.getElementById('expirySelect').style.display = 'none';
-        uploadBtn.style.display = 'none';
+        document.getElementById('storeBtn').style.display = 'none';
         
-        showMessage('success', '✅ File uploaded successfully! Share the link.');
+        showMessage('success', '✅ File stored successfully! Copy the link to share.');
+        
+        // Refresh file list
+        await loadFileList();
+        
+        // Reset
+        selectedFile = null;
+        document.getElementById('fileInfo').style.display = 'none';
+        document.getElementById('fileInput').value = '';
         
       } catch (error) {
-        console.error('Upload error:', error);
         clearInterval(interval);
         progressContainer.style.display = 'none';
-        showMessage('error', 'Upload failed: ' + error.message);
-        uploadBtn.disabled = false;
-        uploadBtn.innerHTML = '🚀 Upload & Create Link';
-        uploadBtn.classList.remove('uploading');
+        showMessage('error', 'Storage failed: ' + error.message);
+        storeBtn.disabled = false;
+        storeBtn.innerHTML = '💾 Store File Locally';
       }
     }
-
-    function cleanupExpiredFiles() {
-      let files = JSON.parse(localStorage.getItem('speeddrop_files') || '[]');
-      const now = Date.now();
-      const validFiles = files.filter(f => f.expiresAt > now);
-      if (validFiles.length !== files.length) {
-        localStorage.setItem('speeddrop_files', JSON.stringify(validFiles));
-      }
-    }
-
-    async function downloadFile(fileId) {
+    
+    // Download file
+    async function downloadFileById(fileId) {
       try {
-        // Get file metadata
-        const files = JSON.parse(localStorage.getItem('speeddrop_files') || '[]');
-        const fileData = files.find(f => f.id === fileId);
+        const fileData = await getFile(fileId);
         
-        if (!fileData) {
-          showMessage('error', 'File not found or has expired');
-          return;
-        }
-        
-        // Check expiry
-        if (fileData.expiresAt < Date.now()) {
-          showMessage('error', 'File has expired');
-          // Remove expired file
-          const updatedFiles = files.filter(f => f.id !== fileId);
-          localStorage.setItem('speeddrop_files', JSON.stringify(updatedFiles));
-          return;
-        }
-        
-        // Update download count
+        // Increment download count
+        const db = await initDB();
+        const transaction = db.transaction([STORE_NAME], 'readwrite');
+        const store = transaction.objectStore(STORE_NAME);
         fileData.downloads++;
-        const updatedFiles = files.map(f => f.id === fileId ? fileData : f);
-        localStorage.setItem('speeddrop_files', JSON.stringify(updatedFiles));
+        store.put(fileData);
         
-        const downloadBtn = document.getElementById('downloadBtn');
-        const originalText = downloadBtn.textContent;
-        downloadBtn.textContent = '⏳ Preparing download...';
-        downloadBtn.disabled = true;
+        const blob = new Blob([fileData.data], { type: fileData.type || 'application/octet-stream' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileData.name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
         
-        // Handle different service types
-        if (fileData.service === 'data-url') {
-          // Direct download for data URL
-          const a = document.createElement('a');
-          a.href = fileData.url;
-          a.download = fileData.name;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          showMessage('success', '✅ Download started!');
-        } else {
-          // For external URLs, open in new tab
-          window.open(fileData.url, '_blank');
-          showMessage('success', '✅ Download started! Check your downloads folder.');
-        }
-        
-        downloadBtn.textContent = originalText;
-        downloadBtn.disabled = false;
+        showMessage('success', `✅ Downloaded "${fileData.name}"`);
         
       } catch (error) {
-        console.error('Download error:', error);
         showMessage('error', 'Download failed: ' + error.message);
-        const downloadBtn = document.getElementById('downloadBtn');
-        downloadBtn.textContent = '⬇️ Download File';
-        downloadBtn.disabled = false;
       }
     }
-
-    async function loadFileInfo(fileId) {
+    
+    // Load file list
+    async function loadFileList() {
       try {
-        const files = JSON.parse(localStorage.getItem('speeddrop_files') || '[]');
-        const fileData = files.find(f => f.id === fileId);
+        const files = await getAllFiles();
+        const fileListDiv = document.getElementById('fileList');
         
-        if (!fileData) {
-          showMessage('error', 'File not found or has been deleted');
-          document.getElementById('receiverUI').innerHTML = `
-            <div style="text-align: center; padding: 40px;">
-              <div style="font-size: 48px;">❌</div>
-              <div style="font-weight: 600; margin: 12px 0;">File Not Found</div>
-              <div style="color: #64748b; margin-bottom: 20px;">The file may have expired or been deleted.</div>
-              <button onclick="window.location.href=window.location.pathname" class="btn btn-primary">Go Home</button>
+        if (files.length === 0) {
+          fileListDiv.innerHTML = '<div style="text-align: center; color: #64748b; padding: 20px;">No files stored yet</div>';
+          return;
+        }
+        
+        files.sort((a, b) => b.createdAt - a.createdAt);
+        
+        fileListDiv.innerHTML = files.map(file => `
+          <div class="file-item">
+            <div class="file-item-info">
+              <div class="file-item-name">${escapeHtml(file.name)}</div>
+              <div class="file-item-size">${formatBytes(file.size)} • Downloaded ${file.downloads} times</div>
             </div>
-          `;
-          return false;
-        }
+            <div>
+              <button onclick="copyLink('${file.id}')" style="background: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer;">🔗</button>
+              <button onclick="deleteFileById('${file.id}')" style="background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; margin-left: 5px;">🗑️</button>
+            </div>
+          </div>
+        `).join('');
         
-        // Check if expired
-        if (fileData.expiresAt < Date.now()) {
-          showMessage('error', 'File has expired');
-          // Remove expired file
-          const updatedFiles = files.filter(f => f.id !== fileId);
-          localStorage.setItem('speeddrop_files', JSON.stringify(updatedFiles));
-          return false;
+      } catch (error) {
+        console.error('Error loading files:', error);
+      }
+    }
+    
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+    
+    function copyLink(fileId) {
+      const shareUrl = `${window.location.origin}${window.location.pathname}?id=${fileId}`;
+      navigator.clipboard.writeText(shareUrl);
+      showMessage('success', '✅ Link copied!');
+    }
+    
+    async function deleteFileById(fileId) {
+      if (confirm('Delete this file?')) {
+        await deleteFile(fileId);
+        await loadFileList();
+        showMessage('success', '✅ File deleted');
+      }
+    }
+    
+    async function clearAllFiles() {
+      if (confirm('Delete ALL files?')) {
+        const files = await getAllFiles();
+        for (const file of files) {
+          await deleteFile(file.id);
         }
+        await loadFileList();
+        showMessage('success', `✅ Deleted ${files.length} file(s)`);
+      }
+    }
+    
+    async function showDownloadInterface(fileId) {
+      try {
+        const fileData = await getFile(fileId);
         
-        const expiresIn = Math.max(0, Math.floor((fileData.expiresAt - Date.now()) / (1000 * 60 * 60)));
-        const expiresText = expiresIn === 0 ? 'Expiring soon' : `${expiresIn} hours remaining`;
+        document.getElementById('mainUI').style.display = 'none';
+        document.getElementById('downloadUI').style.display = 'block';
         
         document.getElementById('downloadFileName').textContent = fileData.name;
         document.getElementById('downloadFileSize').textContent = formatBytes(fileData.size);
-        document.getElementById('downloadExpiry').innerHTML = `⏰ ${expiresText} • Downloaded ${fileData.downloads} times`;
-        document.getElementById('downloadStatus').innerHTML = `📡 Via ${fileData.service}`;
+        document.getElementById('downloadInfo').innerHTML = `Downloaded ${fileData.downloads} times`;
         
         const downloadBtn = document.getElementById('downloadBtn');
-        downloadBtn.onclick = () => downloadFile(fileId);
+        downloadBtn.onclick = () => downloadFileById(fileId);
         
-        return true;
       } catch (error) {
-        console.error('Error:', error);
-        showMessage('error', 'Failed to load file: ' + error.message);
-        return false;
+        showMessage('error', 'File not found');
+        setTimeout(() => {
+          window.location.href = window.location.pathname;
+        }, 2000);
       }
     }
-
-    // Check if in receiver mode
-    const urlParams = new URLSearchParams(window.location.search);
-    const fileId = urlParams.get('id');
-
-    // Setup UI based on mode
-    if (fileId) {
-      // Receiver mode
-      document.getElementById('senderUI').style.display = 'none';
-      document.getElementById('receiverUI').style.display = 'block';
-      loadFileInfo(fileId);
-    } else {
-      // Sender mode
-      document.getElementById('senderUI').style.display = 'block';
-      document.getElementById('receiverUI').style.display = 'none';
-      
-      // Setup event listeners
-      const uploadArea = document.getElementById('uploadArea');
-      const fileInput = document.getElementById('fileInput');
-      const uploadBtn = document.getElementById('uploadBtn');
-      const copyBtn = document.getElementById('copyBtn');
-      const newFileBtn = document.getElementById('newFileBtn');
-      
-      uploadArea.addEventListener('click', () => fileInput.click());
-      
-      uploadArea.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        uploadArea.classList.add('drag-over');
-      });
-      
-      uploadArea.addEventListener('dragleave', () => {
-        uploadArea.classList.remove('drag-over');
-      });
-      
-      uploadArea.addEventListener('drop', (e) => {
-        e.preventDefault();
-        uploadArea.classList.remove('drag-over');
-        const files = e.dataTransfer.files;
-        if (files && files[0]) handleFile(files[0]);
-      });
-      
-      fileInput.addEventListener('change', (e) => {
-        if (e.target.files && e.target.files[0]) handleFile(e.target.files[0]);
-      });
-      
-      uploadBtn.addEventListener('click', uploadFile);
-      
-      copyBtn.addEventListener('click', () => {
-        const link = document.getElementById('shareLink').textContent;
-        navigator.clipboard.writeText(link);
-        showMessage('success', '✅ Link copied to clipboard!');
-      });
-      
-      newFileBtn.addEventListener('click', () => {
-        window.location.href = window.location.pathname;
-      });
-    }
     
-    // Home button
-    const homeBtn = document.getElementById('homeBtn');
-    if (homeBtn) {
-      homeBtn.addEventListener('click', () => {
-        window.location.href = window.location.pathname;
-      });
-    }
-    
-    // Cleanup expired files on load
-    cleanupExpiredFiles();
+    // Initialize
+    (async () => {
+      await initDB();
+      
+      const urlParams = new URLSearchParams(window.location.search);
+      const fileId = urlParams.get('id');
+      
+      if (fileId) {
+        await showDownloadInterface(fileId);
+      } else {
+        document.getElementById('mainUI').style.display = 'block';
+        document.getElementById('downloadUI').style.display = 'none';
+        
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const storeBtn = document.getElementById('storeBtn');
+        const copyBtn = document.getElementById('copyBtn');
+        const newFileBtn = document.getElementById('newFileBtn');
+        const backHomeBtn = document.getElementById('backHomeBtn');
+        const clearAllBtn = document.getElementById('clearAllBtn');
+        
+        uploadArea.addEventListener('click', () => fileInput.click());
+        
+        uploadArea.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          uploadArea.classList.add('drag-over');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+          uploadArea.classList.remove('drag-over');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+          e.preventDefault();
+          uploadArea.classList.remove('drag-over');
+          const files = e.dataTransfer.files;
+          if (files && files[0]) handleFile(files[0]);
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+          if (e.target.files && e.target.files[0]) handleFile(e.target.files[0]);
+        });
+        
+        storeBtn.addEventListener('click', storeCurrentFile);
+        
+        copyBtn.addEventListener('click', () => {
+          const link = document.getElementById('shareLink').textContent;
+          navigator.clipboard.writeText(link);
+          showMessage('success', '✅ Link copied!');
+        });
+        
+        newFileBtn.addEventListener('click', () => {
+          window.location.href = window.location.pathname;
+        });
+        
+        backHomeBtn?.addEventListener('click', () => {
+          window.location.href = window.location.pathname;
+        });
+        
+        clearAllBtn?.addEventListener('click', clearAllFiles);
+        
+        await loadFileList();
+      }
+    })();
   </script>
 </body>
 </html>
