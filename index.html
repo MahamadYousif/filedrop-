@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SpeedDrop - File Transfer</title>
+  <title>FileDrop · Cross-Browser File Sharing</title>
   <style>
     * {
       margin: 0;
@@ -12,60 +12,79 @@
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       padding: 20px;
     }
 
     .container {
+      max-width: 700px;
+      margin: 0 auto;
       background: white;
-      border-radius: 20px;
-      padding: 40px;
-      max-width: 600px;
-      width: 100%;
+      border-radius: 24px;
       box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
     }
 
-    h1 {
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 30px;
       text-align: center;
-      color: #333;
-      margin-bottom: 10px;
+      color: white;
     }
 
-    .subtitle {
-      text-align: center;
-      color: #666;
-      margin-bottom: 30px;
+    .header h1 {
+      font-size: 2rem;
+      margin-bottom: 8px;
+    }
+
+    .badge {
+      background: rgba(255,255,255,0.2);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      display: inline-block;
+    }
+
+    .firebase-badge {
+      background: #FFA000;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .content {
+      padding: 30px;
     }
 
     .upload-area {
-      border: 3px dashed #ddd;
+      border: 3px dashed #cbd5e1;
       border-radius: 16px;
       padding: 40px;
       text-align: center;
       cursor: pointer;
       transition: all 0.3s;
-      background: #fafafa;
+      background: #f8fafc;
     }
 
     .upload-area:hover {
       border-color: #667eea;
       background: #f5f3ff;
+      transform: scale(1.01);
     }
 
-    .file-info {
-      margin-top: 20px;
-      padding: 15px;
-      background: #f0f0f0;
-      border-radius: 10px;
-      display: none;
+    .upload-area.drag-over {
+      border-color: #8b5cf6;
+      background: #f5f3ff;
     }
 
-    button {
+    .btn {
       width: 100%;
       padding: 14px;
       margin-top: 20px;
@@ -74,7 +93,7 @@
       font-size: 16px;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.3s;
+      transition: all 0.2s;
     }
 
     .btn-primary {
@@ -82,60 +101,42 @@
       color: white;
     }
 
-    .btn-primary:hover {
+    .btn-primary:hover:not(:disabled) {
       transform: translateY(-2px);
       box-shadow: 0 5px 20px rgba(102,126,234,0.4);
     }
 
-    .btn-primary:disabled {
+    .btn-success {
+      background: #10b981;
+      color: white;
+    }
+
+    .btn-secondary {
+      background: #6b7280;
+      color: white;
+    }
+
+    .btn-danger {
+      background: #ef4444;
+      color: white;
+    }
+
+    .btn:disabled {
       opacity: 0.5;
       cursor: not-allowed;
     }
 
-    .result-box {
+    .progress-container {
       margin-top: 20px;
-      padding: 20px;
-      background: #e8f5e9;
-      border-radius: 12px;
-      display: none;
-    }
-
-    .link-box {
-      background: white;
-      padding: 12px;
-      border-radius: 8px;
-      word-break: break-all;
-      font-family: monospace;
-      font-size: 12px;
-      margin: 10px 0;
-    }
-
-    .error {
-      background: #ffebee;
-      color: #c62828;
-      padding: 12px;
-      border-radius: 8px;
-      margin-top: 15px;
-      display: none;
-    }
-
-    .success {
-      background: #e8f5e9;
-      color: #2e7d32;
-      padding: 12px;
-      border-radius: 8px;
-      margin-top: 15px;
       display: none;
     }
 
     .progress-bar {
       width: 100%;
-      height: 4px;
-      background: #e0e0e0;
-      border-radius: 2px;
+      height: 8px;
+      background: #e2e8f0;
+      border-radius: 4px;
       overflow: hidden;
-      margin-top: 15px;
-      display: none;
     }
 
     .progress-fill {
@@ -145,94 +146,209 @@
       transition: width 0.3s;
     }
 
-    .button-group {
-      display: flex;
-      gap: 10px;
-      margin-top: 10px;
-    }
-
-    .btn-secondary {
-      background: #6c757d;
-      color: white;
-    }
-
-    .download-area {
+    .progress-text {
       text-align: center;
+      margin-top: 8px;
+      font-size: 0.85rem;
+      color: #64748b;
+    }
+
+    .result-card {
+      margin-top: 20px;
+      padding: 20px;
+      background: #f0fdf4;
+      border-radius: 12px;
+      display: none;
+      border: 1px solid #bbf7d0;
+    }
+
+    .link-box {
+      background: white;
+      padding: 12px;
+      border-radius: 8px;
+      word-break: break-all;
+      font-family: monospace;
+      font-size: 12px;
+      margin: 12px 0;
+      border: 1px solid #d1d5db;
+    }
+
+    .error-message, .success-message {
+      padding: 12px;
+      border-radius: 8px;
+      margin-top: 12px;
       display: none;
     }
 
-    .file-details {
-      background: #f8f9fa;
-      padding: 20px;
-      border-radius: 12px;
-      margin: 20px 0;
+    .error-message {
+      background: #fee2e2;
+      color: #991b1b;
+      border-left: 4px solid #ef4444;
     }
 
-    .info {
+    .success-message {
+      background: #d1fae5;
+      color: #065f46;
+      border-left: 4px solid #10b981;
+    }
+
+    .download-section {
+      text-align: center;
+      padding: 20px;
+      display: none;
+    }
+
+    .file-card {
+      background: #f8fafc;
+      padding: 20px;
+      border-radius: 12px;
+      margin-top: 20px;
+      border: 1px solid #e2e8f0;
+    }
+
+    .info-text {
       margin-top: 20px;
       padding-top: 20px;
-      border-top: 1px solid #eee;
-      font-size: 12px;
-      color: #999;
+      border-top: 1px solid #e2e8f0;
+      font-size: 0.75rem;
+      color: #64748b;
       text-align: center;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    footer {
+      background: #f1f5f9;
+      padding: 16px;
+      text-align: center;
+      font-size: 0.7rem;
+      color: #64748b;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .uploading {
+      animation: pulse 1s infinite;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>⚡ SpeedDrop</h1>
-    <div class="subtitle">Simple File Sharing</div>
-
-    <!-- Upload Section -->
-    <div id="uploadSection">
-      <div id="uploadArea" class="upload-area">
-        <div style="font-size: 48px;">📁</div>
-        <div style="margin-top: 10px;">Click or drag file here</div>
-        <div style="font-size: 12px; margin-top: 5px;">No size limit</div>
+    <div class="header">
+      <h1>⚡ FileDrop</h1>
+      <div class="badge">CROSS BROWSER</div>
+      <div class="firebase-badge">
+        🔥 Powered by Firebase
       </div>
-      <input type="file" id="fileInput" style="display: none;">
-      
-      <div id="fileInfo" class="file-info"></div>
-      
-      <button id="uploadBtn" class="btn-primary" disabled>Create Share Link</button>
-      
-      <div class="progress-bar" id="progressBar">
-        <div class="progress-fill" id="progressFill"></div>
-      </div>
+      <p style="margin-top: 12px; font-size: 0.9rem;">Share files across any browser or device!</p>
     </div>
 
-    <!-- Result Section -->
-    <div id="resultSection" class="result-box">
-      <div style="font-weight: bold; margin-bottom: 10px;">✅ Your Share Link:</div>
-      <div id="shareLink" class="link-box"></div>
-      <div class="button-group">
-        <button id="copyBtn" class="btn-primary" style="margin: 0;">Copy Link</button>
-        <button id="newBtn" class="btn-secondary" style="margin: 0;">New File</button>
+    <div class="content">
+      <!-- Sender UI -->
+      <div id="senderUI">
+        <div id="uploadArea" class="upload-area">
+          <div style="font-size: 48px;">📁</div>
+          <div style="margin-top: 12px; font-weight: 600;">Click or drag file to upload</div>
+          <div style="font-size: 0.85rem; margin-top: 8px;">Files stored in Firebase Cloud</div>
+          <div id="fileInfo" style="margin-top: 12px; display: none;"></div>
+        </div>
+        <input type="file" id="fileInput" style="display: none;">
+
+        <div>
+          <label style="font-size: 0.85rem; margin-top: 12px; display: block;">⏰ File expiry:</label>
+          <select id="expirySelect" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; margin-top: 8px;">
+            <option value="1">1 hour</option>
+            <option value="6">6 hours</option>
+            <option value="12">12 hours</option>
+            <option value="24" selected>24 hours</option>
+            <option value="48">48 hours</option>
+            <option value="72">3 days</option>
+            <option value="168">7 days</option>
+            <option value="0">Never expires</option>
+          </select>
+        </div>
+
+        <button id="uploadBtn" class="btn btn-primary" disabled>🔥 Upload to Firebase</button>
+
+        <div id="progressContainer" class="progress-container">
+          <div class="progress-bar">
+            <div id="progressFill" class="progress-fill"></div>
+          </div>
+          <div id="progressText" class="progress-text"></div>
+        </div>
+
+        <div id="resultCard" class="result-card">
+          <div style="font-weight: 700; margin-bottom: 8px;">✅ File Uploaded Successfully!</div>
+          <div style="font-size: 0.85rem;">Share this link (works on any browser/device):</div>
+          <div id="shareLink" class="link-box"></div>
+          <div id="expiryInfo" style="font-size: 0.75rem; color: #f59e0b; margin-top: 8px;"></div>
+          <div class="button-group">
+            <button id="copyBtn" class="btn btn-success">📋 Copy Link</button>
+            <button id="newFileBtn" class="btn btn-secondary">📁 Upload Another</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Receiver UI -->
+      <div id="receiverUI" style="display: none;">
+        <div class="download-section" style="display: block;">
+          <div class="file-card">
+            <div style="font-size: 48px;">📥</div>
+            <div id="downloadFileName" style="font-weight: 600; margin: 12px 0; font-size: 1.1rem;"></div>
+            <div id="downloadFileSize" style="color: #64748b; font-size: 0.9rem; margin: 8px 0;"></div>
+            <div id="downloadExpiry" style="font-size: 0.8rem; margin: 8px 0;"></div>
+            <button id="downloadBtn" class="btn btn-primary">⬇️ Download File</button>
+            <button id="homeBtn" class="btn btn-secondary" style="margin-top: 10px;">🏠 Send Files</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="errorMessage" class="error-message"></div>
+      <div id="successMessage" class="success-message"></div>
+
+      <div class="info-text">
+        🔥 <strong>Powered by Firebase:</strong> Files stored in Google Cloud<br>
+        🌐 <strong>Cross-browser:</strong> Works on Chrome, Firefox, Safari, Edge, and any device!<br>
+        🔗 Share the link — anyone can download, even if you close this tab!<br>
+        ⏰ Files are automatically deleted after expiry time<br>
+        🔒 No registration required · Completely free
       </div>
     </div>
-
-    <!-- Download Section -->
-    <div id="downloadSection" class="download-area">
-      <div class="file-details">
-        <div style="font-size: 48px; margin-bottom: 10px;">📥</div>
-        <div id="downloadName" style="font-weight: bold; margin: 10px 0;"></div>
-        <div id="downloadSize" style="color: #666; margin: 5px 0;"></div>
-        <button id="downloadBtn" class="btn-primary">Download File</button>
-        <button id="homeBtn" class="btn-secondary" style="margin-top: 10px;">Upload Files</button>
-      </div>
-    </div>
-
-    <div id="errorMsg" class="error"></div>
-    <div id="successMsg" class="success"></div>
-
-    <div class="info">
-      💾 Files stored in your browser • Links work on this computer only<br>
-      🔗 Share the link - files stay even if you close this tab
-    </div>
+    <footer>
+      ⚡ Cross-browser file sharing · Works on any device · Powered by Firebase
+    </footer>
   </div>
 
-  <script>
+  <script type="module">
+    // Your Firebase configuration - REPLACE WITH YOUR ACTUAL CONFIG!
+    const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "filedrop-ac5af.firebaseapp.com",
+  projectId: "filedrop-ac5af",
+  storageBucket: "filedrop-ac5af.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+    
+    // Import Firebase modules
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, doc, setDoc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getStorage, ref, uploadBytesResumable, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+    
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+    
     let selectedFile = null;
+    let currentFileId = null;
     
     function formatBytes(bytes) {
       if (bytes === 0) return '0 Bytes';
@@ -242,194 +358,244 @@
       return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     }
     
-    function showMessage(type, msg) {
-      const el = document.getElementById(type === 'error' ? 'errorMsg' : 'successMsg');
-      el.textContent = msg;
-      el.style.display = 'block';
+    function showMessage(type, message) {
+      const element = document.getElementById(type === 'error' ? 'errorMessage' : 'successMessage');
+      element.textContent = message;
+      element.style.display = 'block';
       setTimeout(() => {
-        el.style.display = 'none';
-      }, 3000);
+        element.style.display = 'none';
+      }, 5000);
     }
     
     function handleFile(file) {
       if (!file) return;
       
       selectedFile = file;
-      const info = document.getElementById('fileInfo');
-      info.innerHTML = `<strong>${file.name}</strong><br>Size: ${formatBytes(file.size)}`;
-      info.style.display = 'block';
+      const fileInfo = document.getElementById('fileInfo');
+      fileInfo.innerHTML = `<strong>📄 ${file.name}</strong><br>Size: ${formatBytes(file.size)}<br>Type: ${file.type || 'Unknown'}`;
+      fileInfo.style.display = 'block';
       document.getElementById('uploadBtn').disabled = false;
-    }
-    
-    function saveFile(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const id = Date.now().toString(36) + Math.random().toString(36).substring(2);
-          const fileData = {
-            id: id,
-            name: file.name,
-            type: file.type,
-            size: file.size,
-            data: e.target.result,
-            time: Date.now()
-          };
-          
-          let files = JSON.parse(localStorage.getItem('speeddrop_files') || '{}');
-          files[id] = fileData;
-          localStorage.setItem('speeddrop_files', JSON.stringify(files));
-          resolve(id);
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-    }
-    
-    function getFile(id) {
-      const files = JSON.parse(localStorage.getItem('speeddrop_files') || '{}');
-      return files[id];
     }
     
     async function uploadFile() {
       if (!selectedFile) return;
       
-      const btn = document.getElementById('uploadBtn');
-      const progressBar = document.getElementById('progressBar');
+      const uploadBtn = document.getElementById('uploadBtn');
+      const progressContainer = document.getElementById('progressContainer');
       const progressFill = document.getElementById('progressFill');
+      const progressText = document.getElementById('progressText');
+      const expirySelect = document.getElementById('expirySelect');
       
-      btn.disabled = true;
-      btn.textContent = 'Saving...';
-      progressBar.style.display = 'block';
-      
-      let progress = 0;
-      const interval = setInterval(() => {
-        if (progress < 90) {
-          progress += 10;
-          progressFill.style.width = progress + '%';
-        }
-      }, 100);
+      uploadBtn.disabled = true;
+      uploadBtn.innerHTML = '🔥 Uploading to Firebase...';
+      progressContainer.style.display = 'block';
+      uploadBtn.classList.add('uploading');
       
       try {
-        const fileId = await saveFile(selectedFile);
+        // Generate unique file ID
+        const fileId = Date.now().toString(36) + Math.random().toString(36).substring(2);
+        const storageRef = ref(storage, `files/${fileId}_${selectedFile.name}`);
         
-        clearInterval(interval);
-        progressFill.style.width = '100%';
+        // Upload to Firebase Storage
+        const uploadTask = uploadBytesResumable(storageRef, selectedFile);
         
-        setTimeout(() => {
-          progressBar.style.display = 'none';
-        }, 500);
+        uploadTask.on('state_changed',
+          (snapshot) => {
+            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            progressFill.style.width = progress + '%';
+            progressText.textContent = `${Math.round(progress)}% uploaded`;
+          },
+          (error) => {
+            throw error;
+          },
+          async () => {
+            // Get download URL
+            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+            
+            // Calculate expiry
+            const expiresInHours = parseInt(expirySelect.value);
+            const expiresAt = expiresInHours === 0 ? null : Date.now() + (expiresInHours * 60 * 60 * 1000);
+            
+            // Save metadata to Firestore
+            await setDoc(doc(db, 'files', fileId), {
+              name: selectedFile.name,
+              size: selectedFile.size,
+              type: selectedFile.type,
+              url: downloadURL,
+              storagePath: `files/${fileId}_${selectedFile.name}`,
+              createdAt: Date.now(),
+              expiresAt: expiresAt,
+              downloads: 0
+            });
+            
+            progressContainer.style.display = 'none';
+            uploadBtn.classList.remove('uploading');
+            
+            // Show result
+            const shareUrl = `${window.location.origin}${window.location.pathname}?id=${fileId}`;
+            document.getElementById('shareLink').textContent = shareUrl;
+            document.getElementById('expiryInfo').innerHTML = expiresInHours === 0 ? 
+              '🔗 Link never expires!' : 
+              `⏰ Link expires in ${expiresInHours} hours`;
+            document.getElementById('resultCard').style.display = 'block';
+            document.getElementById('uploadArea').style.display = 'none';
+            document.getElementById('expirySelect').style.display = 'none';
+            uploadBtn.style.display = 'none';
+            
+            showMessage('success', '✅ File uploaded to Firebase! Share the link with anyone.');
+          }
+        );
         
-        const link = `${window.location.origin}${window.location.pathname}?id=${fileId}`;
-        document.getElementById('shareLink').textContent = link;
-        document.getElementById('uploadSection').style.display = 'none';
-        document.getElementById('resultSection').style.display = 'block';
-        
-        showMessage('success', 'File saved! Share the link above.');
-        
-      } catch (err) {
-        clearInterval(interval);
-        progressBar.style.display = 'none';
-        showMessage('error', 'Failed to save file');
-        btn.disabled = false;
-        btn.textContent = 'Create Share Link';
+      } catch (error) {
+        console.error('Upload error:', error);
+        progressContainer.style.display = 'none';
+        showMessage('error', 'Upload failed: ' + error.message);
+        uploadBtn.disabled = false;
+        uploadBtn.innerHTML = '🔥 Upload to Firebase';
+        uploadBtn.classList.remove('uploading');
       }
     }
     
-    function downloadFile(fileId) {
-      const fileData = getFile(fileId);
-      if (!fileData) {
-        showMessage('error', 'File not found');
-        return;
+    async function downloadFile(fileId) {
+      try {
+        const docRef = doc(db, 'files', fileId);
+        const docSnap = await getDoc(docRef);
+        
+        if (!docSnap.exists()) {
+          showMessage('error', 'File not found or has been deleted');
+          return;
+        }
+        
+        const fileData = docSnap.data();
+        
+        // Check if expired
+        if (fileData.expiresAt && fileData.expiresAt < Date.now()) {
+          showMessage('error', 'File has expired');
+          return;
+        }
+        
+        // Increment download count
+        await setDoc(docRef, {
+          ...fileData,
+          downloads: fileData.downloads + 1
+        });
+        
+        // Download the file
+        window.open(fileData.url, '_blank');
+        showMessage('success', '✅ Download started!');
+        
+      } catch (error) {
+        console.error('Download error:', error);
+        showMessage('error', 'Download failed: ' + error.message);
       }
-      
-      const a = document.createElement('a');
-      a.href = fileData.data;
-      a.download = fileData.name;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      
-      showMessage('success', 'Download started!');
     }
     
-    function showDownloadUI(fileId) {
-      const fileData = getFile(fileId);
-      if (!fileData) {
-        document.getElementById('downloadSection').innerHTML = `
-          <div class="file-details">
-            <div style="font-size: 48px;">❌</div>
-            <div style="margin: 10px 0;">File not found!</div>
-            <button onclick="window.location.href=window.location.pathname" class="btn-primary">Go Home</button>
-          </div>
-        `;
-        document.getElementById('downloadSection').style.display = 'block';
-        return;
+    async function loadFileInfo(fileId) {
+      try {
+        const docRef = doc(db, 'files', fileId);
+        const docSnap = await getDoc(docRef);
+        
+        if (!docSnap.exists()) {
+          document.getElementById('receiverUI').innerHTML = `
+            <div style="text-align: center; padding: 40px;">
+              <div style="font-size: 48px;">❌</div>
+              <div style="font-weight: 600; margin: 12px 0;">File Not Found</div>
+              <div style="color: #64748b; margin-bottom: 20px;">The file may have expired or been deleted.</div>
+              <button onclick="window.location.href=window.location.pathname" class="btn btn-primary">Go Home</button>
+            </div>
+          `;
+          document.getElementById('receiverUI').style.display = 'block';
+          return false;
+        }
+        
+        const fileData = docSnap.data();
+        
+        // Check if expired
+        if (fileData.expiresAt && fileData.expiresAt < Date.now()) {
+          showMessage('error', 'File has expired');
+          return false;
+        }
+        
+        const expiresIn = fileData.expiresAt ? Math.max(0, Math.floor((fileData.expiresAt - Date.now()) / (1000 * 60 * 60))) : null;
+        const expiresText = expiresIn === null ? 'Never expires' : `${expiresIn} hours remaining`;
+        
+        document.getElementById('downloadFileName').textContent = fileData.name;
+        document.getElementById('downloadFileSize').textContent = formatBytes(fileData.size);
+        document.getElementById('downloadExpiry').innerHTML = `⏰ ${expiresText} • Downloaded ${fileData.downloads} times`;
+        
+        const downloadBtn = document.getElementById('downloadBtn');
+        downloadBtn.onclick = () => downloadFile(fileId);
+        
+        return true;
+      } catch (error) {
+        console.error('Error:', error);
+        showMessage('error', 'Failed to load file: ' + error.message);
+        return false;
       }
-      
-      document.getElementById('downloadName').textContent = fileData.name;
-      document.getElementById('downloadSize').textContent = formatBytes(fileData.size);
-      document.getElementById('downloadSection').style.display = 'block';
-      document.getElementById('uploadSection').style.display = 'none';
-      
-      const downloadBtn = document.getElementById('downloadBtn');
-      downloadBtn.onclick = () => downloadFile(fileId);
     }
     
-    const params = new URLSearchParams(window.location.search);
-    const fileId = params.get('id');
+    // Check if in receiver mode
+    const urlParams = new URLSearchParams(window.location.search);
+    const fileId = urlParams.get('id');
     
+    // Setup UI based on mode
     if (fileId) {
-      document.getElementById('uploadSection').style.display = 'none';
-      showDownloadUI(fileId);
+      // Receiver mode
+      document.getElementById('senderUI').style.display = 'none';
+      document.getElementById('receiverUI').style.display = 'block';
+      loadFileInfo(fileId);
     } else {
-      document.getElementById('uploadSection').style.display = 'block';
-      document.getElementById('resultSection').style.display = 'none';
-      document.getElementById('downloadSection').style.display = 'none';
+      // Sender mode
+      document.getElementById('senderUI').style.display = 'block';
+      document.getElementById('receiverUI').style.display = 'none';
       
+      // Setup event listeners
       const uploadArea = document.getElementById('uploadArea');
       const fileInput = document.getElementById('fileInput');
       const uploadBtn = document.getElementById('uploadBtn');
       const copyBtn = document.getElementById('copyBtn');
-      const newBtn = document.getElementById('newBtn');
+      const newFileBtn = document.getElementById('newFileBtn');
       const homeBtn = document.getElementById('homeBtn');
       
-      uploadArea.onclick = () => fileInput.click();
+      uploadArea.addEventListener('click', () => fileInput.click());
       
-      uploadArea.ondragover = (e) => {
+      uploadArea.addEventListener('dragover', (e) => {
         e.preventDefault();
-        uploadArea.style.borderColor = '#667eea';
-      };
+        uploadArea.classList.add('drag-over');
+      });
       
-      uploadArea.ondragleave = () => {
-        uploadArea.style.borderColor = '#ddd';
-      };
+      uploadArea.addEventListener('dragleave', () => {
+        uploadArea.classList.remove('drag-over');
+      });
       
-      uploadArea.ondrop = (e) => {
+      uploadArea.addEventListener('drop', (e) => {
         e.preventDefault();
-        uploadArea.style.borderColor = '#ddd';
+        uploadArea.classList.remove('drag-over');
         const files = e.dataTransfer.files;
-        if (files[0]) handleFile(files[0]);
-      };
+        if (files && files[0]) handleFile(files[0]);
+      });
       
-      fileInput.onchange = (e) => {
-        if (e.target.files[0]) handleFile(e.target.files[0]);
-      };
+      fileInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) handleFile(e.target.files[0]);
+      });
       
-      uploadBtn.onclick = uploadFile;
+      uploadBtn.addEventListener('click', uploadFile);
       
-      copyBtn.onclick = () => {
+      copyBtn.addEventListener('click', () => {
         const link = document.getElementById('shareLink').textContent;
         navigator.clipboard.writeText(link);
-        showMessage('success', 'Link copied!');
-      };
+        showMessage('success', '✅ Link copied to clipboard!');
+      });
       
-      newBtn.onclick = () => {
+      newFileBtn.addEventListener('click', () => {
         window.location.href = window.location.pathname;
-      };
+      });
       
-      homeBtn.onclick = () => {
-        window.location.href = window.location.pathname;
-      };
+      if (homeBtn) {
+        homeBtn.addEventListener('click', () => {
+          window.location.href = window.location.pathname;
+        });
+      }
     }
   </script>
 </body>
